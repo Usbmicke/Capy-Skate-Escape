@@ -23,13 +23,16 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        const GRAVITY = 0.8;
-        const JUMP_STRENGTH = -15;
-        const BASE_ZOMBIE_SPEED = 2;  // Slower starting speed
-        const MAX_ZOMBIE_SPEED = 8;
-        const BASE_SPAWN_RATE = 120;  // More space between zombies at start
-        const MIN_SPAWN_RATE = 30;
-        const DIFFICULTY_INCREASE_RATE = 0.05;  // Slower difficulty increase
+        const GRAVITY = 0.6;  // Lower gravity for longer jumps
+        const JUMP_STRENGTH = -18;  // Stronger initial jump
+        const BASE_ZOMBIE_SPEED = 3;    // Faster starting speed
+        const MAX_ZOMBIE_SPEED = 10;    // Higher max speed
+        const BASE_SPAWN_RATE = 120;    // Less space between zombies at start
+        const MIN_SPAWN_RATE = 30;      // Less space between zombies at max difficulty
+        const DIFFICULTY_INCREASE_RATE = 0.05;  // Faster difficulty increase
+        const SPEED_VARIATION = 0.8;    // Much more random speed variation
+        const SPAWN_VARIATION = 0.6;    // Much more random spawn timing variation
+        const HEIGHT_VARIATION = 20;    // Random height variation for zombies
 
         // Background elements
         const trees = [];
@@ -140,7 +143,7 @@
             jump() {
                 const currentTime = Date.now();
                 if (this.jumpCount === 0) {
-                    // First jump
+                    // First jump - stronger
                     this.velocity = JUMP_STRENGTH;
                     this.isJumping = true;
                     this.canDoubleJump = true;
@@ -148,14 +151,14 @@
                     this.lastJumpTime = currentTime;
                     this.jumpCount = 1;
                 } else if (this.jumpCount === 1 && this.canDoubleJump) {
-                    // Double jump
-                    this.velocity = JUMP_STRENGTH * 0.8;
+                    // Double jump - still strong
+                    this.velocity = JUMP_STRENGTH * 0.9;
                     this.canDoubleJump = false;
                     this.lastJumpTime = currentTime;
                     this.jumpCount = 2;
                 } else if (this.jumpCount === 2 && this.canTripleJump) {
-                    // Triple jump
-                    this.velocity = JUMP_STRENGTH * 0.6;
+                    // Triple jump - still useful
+                    this.velocity = JUMP_STRENGTH * 0.8;
                     this.canTripleJump = false;
                     this.lastJumpTime = currentTime;
                     this.jumpCount = 3;
@@ -301,14 +304,32 @@
         class Zombie {
             constructor(speed) {
                 this.width = 40;
-                this.height = 60;
+                this.height = 60 + (Math.random() - 0.5) * HEIGHT_VARIATION;  // Random height
                 this.x = canvas.width;
                 this.y = canvas.height - this.height;
                 this.speed = speed;
+                this.bounceOffset = Math.random() * 10;  // Random bounce
+                this.bounceSpeed = 0.1 + Math.random() * 0.2;  // Random bounce speed
+                this.bounceTime = Math.random() * Math.PI * 2;  // Random starting phase
+                
+                // Random zombie color
+                const colors = [
+                    '#2E8B57',  // Green
+                    '#8B4513',  // Brown
+                    '#4B0082',  // Purple
+                    '#8B0000',  // Dark Red
+                    '#2F4F4F',  // Dark Slate
+                    '#556B2F',  // Dark Olive
+                    '#483D8B',  // Dark Slate Blue
+                    '#8B008B'   // Dark Magenta
+                ];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
             }
 
             update() {
                 this.x -= this.speed;
+                this.bounceTime += this.bounceSpeed;
+                this.y = canvas.height - this.height + Math.sin(this.bounceTime) * this.bounceOffset;
             }
 
             draw() {
@@ -316,11 +337,11 @@
                 ctx.translate(this.x, this.y);
 
                 // Draw body
-                ctx.fillStyle = '#2E8B57';  // Greenish color for zombie
+                ctx.fillStyle = this.color;  // Use random color
                 ctx.fillRect(0, 0, this.width, this.height);
 
                 // Draw head
-                ctx.fillStyle = '#2E8B57';
+                ctx.fillStyle = this.color;
                 ctx.beginPath();
                 ctx.arc(this.width/2, -10, 15, 0, Math.PI * 2);
                 ctx.fill();
@@ -339,12 +360,20 @@
                 ctx.arc(this.width/2, -5, 5, 0, Math.PI);
                 ctx.stroke();
 
-                // Draw arms
-                ctx.fillStyle = '#2E8B57';
-                ctx.fillRect(-5, 10, 10, 30);
-                ctx.fillRect(this.width - 5, 10, 10, 30);
+                // Draw arm reaching forward
+                ctx.fillStyle = this.color;
+                // Left arm
+                ctx.fillRect(-5, 10, 20, 8);  // Main arm part
+                ctx.fillRect(-15, 10, 10, 8);  // Extended part
+
+                // Draw small hand
+                ctx.fillStyle = '#FFE4B5';  // Skin color for hands
+                ctx.beginPath();
+                ctx.arc(-25, 14, 5, 0, Math.PI * 2);  // Moved forward and aligned with arm
+                ctx.fill();
 
                 // Draw legs
+                ctx.fillStyle = this.color;
                 ctx.fillRect(5, this.height - 20, 10, 20);
                 ctx.fillRect(this.width - 15, this.height - 20, 10, 20);
 
@@ -364,13 +393,17 @@
         }
 
         function getCurrentZombieSpeed() {
-            // Start slower and increase more gradually
-            return BASE_ZOMBIE_SPEED + (MAX_ZOMBIE_SPEED - BASE_ZOMBIE_SPEED) * (getCurrentDifficulty() * getCurrentDifficulty());
+            // Add random variation to speed
+            const baseSpeed = BASE_ZOMBIE_SPEED + (MAX_ZOMBIE_SPEED - BASE_ZOMBIE_SPEED) * (getCurrentDifficulty() * getCurrentDifficulty());
+            const variation = (Math.random() - 0.5) * SPEED_VARIATION * baseSpeed;
+            return baseSpeed + variation;
         }
 
         function getCurrentSpawnRate() {
-            // Start with more space and decrease more gradually
-            return BASE_SPAWN_RATE - (BASE_SPAWN_RATE - MIN_SPAWN_RATE) * (getCurrentDifficulty() * getCurrentDifficulty());
+            // Add random variation to spawn rate
+            const baseRate = BASE_SPAWN_RATE - (BASE_SPAWN_RATE - MIN_SPAWN_RATE) * (getCurrentDifficulty() * getCurrentDifficulty());
+            const variation = (Math.random() - 0.5) * SPAWN_VARIATION * baseRate;
+            return baseRate + variation;
         }
 
         function checkCollision(capy, zombie) {
@@ -424,7 +457,7 @@
                 // Increase difficulty over time
                 difficulty += DIFFICULTY_INCREASE_RATE * 0.016; // 0.016 is roughly 1/60 for 60fps
                 
-                // Spawn zombies
+                // Spawn zombies with random timing
                 zombieSpawnTimer++;
                 if (zombieSpawnTimer >= getCurrentSpawnRate()) {
                     zombies.push(new Zombie(getCurrentZombieSpeed()));
