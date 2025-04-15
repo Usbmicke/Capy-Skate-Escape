@@ -23,16 +23,16 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        const GRAVITY = 0.6;  // Lower gravity for longer jumps
-        const JUMP_STRENGTH = -18;  // Stronger initial jump
-        const BASE_ZOMBIE_SPEED = 3;    // Faster starting speed
-        const MAX_ZOMBIE_SPEED = 10;    // Higher max speed
-        const BASE_SPAWN_RATE = 120;    // Less space between zombies at start
-        const MIN_SPAWN_RATE = 30;      // Less space between zombies at max difficulty
-        const DIFFICULTY_INCREASE_RATE = 0.05;  // Faster difficulty increase
-        const SPEED_VARIATION = 0.8;    // Much more random speed variation
-        const SPAWN_VARIATION = 0.6;    // Much more random spawn timing variation
-        const HEIGHT_VARIATION = 20;    // Random height variation for zombies
+        const GRAVITY = 0.5;  // Even lower gravity for longer jumps
+        const JUMP_STRENGTH = -20;  // Much stronger initial jump
+        const BASE_ZOMBIE_SPEED = 1.5;  // Much slower starting speed
+        const MAX_ZOMBIE_SPEED = 7;     // Lower max speed
+        const BASE_SPAWN_RATE = 180;    // Much more space between zombies at start
+        const MIN_SPAWN_RATE = 60;      // More space between zombies at max difficulty
+        const DIFFICULTY_INCREASE_RATE = 0.02;  // Much slower difficulty increase
+        const SPEED_VARIATION = 0.4;    // Less random speed variation
+        const SPAWN_VARIATION = 0.3;    // Less random spawn timing variation
+        const HEIGHT_VARIATION = 15;    // Less random height variation for zombies
 
         // Background elements
         const trees = [];
